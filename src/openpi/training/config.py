@@ -616,6 +616,19 @@ _CONFIGS = [
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
         num_train_steps=30_000,
     ),
+        TrainConfig(
+        name="pi0_fast_lora_airbot_infer",
+        model=pi0_fast.Pi0FASTConfig(action_dim=7, paligemma_variant="gemma_2b_lora"),
+        data=LeRobotAirbotDataConfig(
+            repo_id="airbot",
+            base_config=DataConfig(
+                local_files_only=True,  # Set to True for local-only datasets.
+                prompt_from_task=True,
+            ),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_fast_base/params"),
+        num_train_steps=30_000,
+    ),
     TrainConfig(
         name="pi0_libero_low_mem_finetune",
         # Here is an example of loading a pi0 model for LoRA fine-tuning.

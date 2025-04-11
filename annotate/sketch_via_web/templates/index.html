@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Sketcher</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;  /* 禁止滚动条 */
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        #canvas-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #references-container {
+            width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .reference-image {
+            width: 640px;
+            height: 480px;
+            object-fit: contain;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+            margin: 0 auto;
+            background-color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .reference-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div id="canvas-container"></div>
+        <div class="right-panel">
+            <div id="references-container">
+                <!-- 参考图片将在这里动态添加 -->
+            </div>
+            <button onclick="saveDrawing()">保存绘图</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script>
+        let img;
+        let isDrawing = false;
+        let drawingPoints = [];
+        let index = 0;
+        let mainCanvas;
+        let referenceCanvas;
+    
+        // 页面加载时启动图像请求
+        window.onload = function() {
+            intervalId = setInterval(displayImage, 500);
+        };
+    
+        function setup() {
+            mainCanvas = createCanvas(640, 480);
+            mainCanvas.parent('canvas-container');
+            background(255);
+            
+            // 禁止触屏滚动
+            document.body.addEventListener('touchmove', function(event) {
+                event.preventDefault();
+            }, { passive: false });
+        }
+    
+        function displayImage() {
+            fetch('/get_image')
+            .then(response => response.json())
+            .then(data => {
+                if (data.image) {
+                    img = loadImage('data:image/jpg;base64,' + data.image, imageLoaded);
+                }
+                
+                let referencesContainer = document.getElementById('references-container');
+                referencesContainer.innerHTML = '';
+                
+                if (data.reference_image) {
+                    // 加载参考图片
+                    let refImg = document.createElement('img');
+                    refImg.className = 'reference-image';
+                    refImg.src = 'data:image/jpg;base64,' + data.reference_image;
+                    referencesContainer.appendChild(refImg);
+                }
+            })
+            .catch(error => {});
+        }
+    
+        function imageLoaded() {
+            // 将图像缩放到640x480，居中显示
+            let imgWidth = img.width;
+            let imgHeight = img.height;
+            let xOffset = (width - 640) / 2;
+            let yOffset = (height - 480) / 2;
+    
+            resizeCanvas(640, 480);
+            image(img, xOffset, yOffset, 640, 480);
+            clearInterval(intervalId); // 停止定时请求
+        }
+    
+        function mousePressed() {
+            if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
+                return;
+            }
+            isDrawing = true;
+            drawingPoints = [];  // 清空之前的绘制点
+            index = 0;
+            background(255);  // 清除画布
+            if (img) {
+                image(img, 0, 0, 640, 480);  // 重新绘制背景图像
+            }
+            drawingPoints.push({ x: mouseX, y: mouseY, time: index });
+        }
+    
+        function mouseDragged() {
+            if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
+                return;
+            }
+            if (isDrawing) {
+                index += 1;
+                drawingPoints.push({ x: mouseX, y: mouseY, time: index });
+                stroke(0);
+                strokeWeight(5);
+                line(mouseX, mouseY, pmouseX, pmouseY);
+            }
+        }
+    
+        function mouseReleased() {
+            if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
+                return;
+            }
+            isDrawing = false;
+            index += 1;
+            drawingPoints.push({ x: mouseX, y: mouseY, time: index });
+
+            drawColoredCurve();
+        }
+    
+        function drawColoredCurve() {
+            console.log(drawingPoints.length)
+            for (let i = 1; i < drawingPoints.length; i++) {
+                let startPoint = drawingPoints[i - 1];
+                let endPoint = drawingPoints[i];
+                
+                let t = endPoint.time / index
+                let r = Math.min(255, Math.floor(255 * t));
+
+                stroke(r, 0, 0);
+                strokeWeight(5);
+                line(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+            }
+
+            // 画开始和结束圆圈
+            // let size = 20;
+            // let weight = 5
+            // noFill();
+            // strokeWeight(weight);
+
+            // stroke(0, 255, 0);
+            // ellipse(drawingPoints[0].x, drawingPoints[0].y, size, size);
+
+            // stroke(0, 0, 255);
+            // ellipse(drawingPoints[drawingPoints.length - 1].x, drawingPoints[drawingPoints.length - 1].y, size, size);
+        }
+    
+        function saveDrawing() {
+            let drawingData = canvas.toDataURL('image/png');
+            
+            let drawingPointsData = drawingPoints;
+
+            clear();
+            background(255);
+            
+            // 清空参考图片容器
+            document.getElementById('references-container').innerHTML = '';
+            
+            fetch('/draw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    drawing: drawingData,
+                    drawingPoints: drawingPointsData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "Image drawn successfully") {
+                    console.log("Image and drawing points saved successfully");
+                    intervalId = setInterval(displayImage, 500);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving drawing:', error);
+            });
+        }
+    </script>
+</body>
+</html>

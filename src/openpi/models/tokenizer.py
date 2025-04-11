@@ -37,7 +37,7 @@ class PaligemmaTokenizer:
 
 
 class FASTTokenizer:
-    def __init__(self, max_len: int = 256, fast_tokenizer_path: str = "physical-intelligence/fast"):
+    def __init__(self, max_len: int = 256, fast_tokenizer_path: str = "/home/a123/Desktop/RCNet/openpi_airbot/checkpoints/fast_tokenizer/fast"):
         self._max_len = max_len
 
         # Download base PaliGemma tokenizer
