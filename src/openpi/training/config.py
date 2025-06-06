@@ -593,7 +593,7 @@ _CONFIGS = [
     ),
         TrainConfig(
         name="pi0_airbot_infer_with_ref",
-        model=pi0.Pi0Config(action_horizon=25, use_ref=True),
+        model=pi0.Pi0Config(action_horizon=50, use_ref=True),
         data=LeRobotAirbotDataConfig(
             repo_id="airbot",
             base_config=DataConfig(

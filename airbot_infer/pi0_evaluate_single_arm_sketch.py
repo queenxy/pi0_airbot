@@ -100,9 +100,7 @@ def main(args: Args) -> None:
     img = ts.observation["images"]["0"][..., [2, 1, 0]]
     img = Image.fromarray(np.uint8(img), mode="RGB")
     img.save("before_draw.jpg")
-    ref_img, pure_img, _ = server.draw_img(img)       # draw on picture on website
-    print(pure_img.shape)
-    print(np.max(pure_img))
+    ref_img, _, _ = server.draw_img(img)       # draw on picture on website
     ref_img = ref_img.resize((640,480)).convert('RGB')     # convert the result to input shape
     ref_img.save("draw.png")
     ref_img = np.asarray(ref_img)   # ref_img is 480*640*3, 0-255 uint8, RGB mode
