@@ -93,17 +93,6 @@ def inference_thread(policy, args):
                     blended = blend_actions(action_deque[i], action_buffer[i], alpha)
                     action_deque[i] = blended
                 
-                # 逐步融合动作
-                # blend_count = min(len(action_deque), 15)
-                # for i in range(min(len(action_deque),len(action_buffer))):
-                #     if i < blend_count:
-                #         # 随时间增加融合权重
-                #         alpha = (i+1)/blend_count  #权重逐渐增大
-                #         blended = blend_actions(action_deque[i], action_buffer[i], alpha)
-                #         action_deque[i] = blended
-                #     else:
-                #         action_deque[i] = action_buffer[i]
-                
                 # 添加新chunk的剩余部分
                 if len(action_buffer) > len(action_deque):
                     action_deque.extend(action_buffer[len(action_deque):])
@@ -262,6 +251,16 @@ def main(args: Args) -> None:
     
     inf_thread.start()
     exec_thread.start()
+    
+    try:
+        while inf_thread.is_alive() and exec_thread.is_alive():
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("Shutting down threads...")
+        shared_state.shutdown = True
+        inf_thread.join(timeout=1.0)
+        exec_thread.join(timeout=1.0)
+
 
 
 def parse_obs(ts, ref_img) -> dict:
