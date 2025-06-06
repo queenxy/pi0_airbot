@@ -3,8 +3,8 @@ import numpy as np
 import collections
 import dm_env
 from typing import List
-from robots.common_robot import AssembledRobot, AssembledFakeRobot
-from envs.common_env import move_robots
+from airbot_infer.robots.common_robot import AssembledRobot, AssembledFakeRobot
+from airbot_infer.envs.common_env import move_robots
 
 
 class RealEnv:
@@ -41,9 +41,9 @@ class RealEnv:
         use_fake_robot = isinstance(self.airbot_players[0], AssembledFakeRobot)
         if record_images:
             if use_fake_robot and not AssembledFakeRobot.real_camera:
-                from robot_utils import ImageRecorderFake as ImageRecorder
+                from airbot_infer.envs.robot_utils import ImageRecorderFake as ImageRecorder
             elif isinstance(cameras, dict):
-                from robot_utils import ImageRecorderVideo as ImageRecorder
+                from airbot_infer.envs.robot_utils import ImageRecorderVideo as ImageRecorder
             else:
                 from robot_tools.recorder import ImageRecorderRos as ImageRecorder
                 import rospy

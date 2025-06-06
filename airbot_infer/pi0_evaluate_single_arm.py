@@ -10,8 +10,8 @@ from openpi_client import websocket_client_policy as _websocket_client_policy
 import tyro
 from pynput import keyboard
 
-from robots.airbots.airbot_play.airbot_play_2 import AIRBOTPlay, AIRBOTPlayConfig
-from envs.airbot_play_real_env import make_env
+from airbot_infer.robots.airbots.airbot_play.airbot_play_2 import AIRBOTPlay, AIRBOTPlayConfig
+from airbot_infer.envs.airbot_play_real_env import make_env
 
 
 @dataclasses.dataclass
@@ -47,8 +47,8 @@ def main(args: Args) -> None:
 
     cameras = (
         {
-            "0": args.cams[1],# 4
-            "1": args.cams[0],# 0
+            "0": args.cams[0],
+            "1": args.cams[1],
         }
     )
     

@@ -29,7 +29,7 @@ def make_environment(env_config):
     elif "airbot_play" in robot_name:
         # set up can
         # from utils import CAN_Tools
-        import airbot
+        import airbot_infer
 
         vel = 2.0
         for i in range(robot_num):
@@ -37,7 +37,7 @@ def make_environment(env_config):
             #     if not CAN_Tools.check_can_status(can):
             #        success, error = CAN_Tools.activate_can_interface(can, 1000000)
             #        if not success: raise Exception(error)
-            airbot_player = airbot.create_agent(
+            airbot_player = airbot_infer.create_agent(
                 "/usr/share/airbot_models/airbot_play_with_gripper.urdf",
                 "down",
                 can_buses[i],

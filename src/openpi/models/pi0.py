@@ -73,7 +73,8 @@ class Pi0Config(_model.BaseModelConfig):
     # Set the model specific defaults.
     action_dim: int = 32
     action_horizon: int = 50
-    max_token_len: int = 48
+    max_token_len: int = 250
+    use_ref: bool = False
 
     @property
     @override

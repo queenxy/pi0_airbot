@@ -335,7 +335,7 @@ class LeRobotAirbotDataConfig(DataConfigFactory):
         # and *not* during inference. We can use it to make inputs from the dataset look
         # as close as possible to those coming from the inference environment (e.g. match the keys).
         # Below, we match the keys in the dataset (which we defined in the data conversion script) to
-        # the keys we use in our inference pipeline (defined in the inference script for libero).
+        # the keys we use in our inference pipeline (defined in the inferenLeRobotAirbotDataConfigce script for libero).
         # For your own dataset, first figure out what keys your environment passes to the policy server
         # and then modify the mappings below so your dataset's keys get matched to those target keys.
         # The repack transform simply remaps key names here.
@@ -348,6 +348,7 @@ class LeRobotAirbotDataConfig(DataConfigFactory):
                         "observation/state": "state",
                         "actions": "actions",
                         "prompt": "prompt",
+                        "observation/ref_image": "ref_image"
                     }
                 )
             ]
@@ -360,7 +361,8 @@ class LeRobotAirbotDataConfig(DataConfigFactory):
         # how to modify the transforms to match your dataset. Once you created your own transforms, you can
         # replace the transforms below with your own.
         data_transforms = _transforms.Group(
-            inputs=[airbot_policy.AirbotInputs(action_dim=model_config.action_dim, model_type=model_config.model_type)],
+            inputs=[airbot_policy.AirbotInputs(action_dim=model_config.action_dim, model_type=model_config.model_type,
+            use_ref=model_config.use_ref)],
             outputs=[airbot_policy.AirbotOutputs()],
         )
 
@@ -572,42 +574,28 @@ _CONFIGS = [
         # Here you define which pre-trained checkpoint you want to load to initialize the model.
         # This should match the model config you chose above -- i.e. in this case we use the pi0 base model.
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
-        # Below you can define other hyperparameters like the learning rate, number of training steps, etc.
+        # Below you can define other hyperparameters like the learning rate, number of tsketch_via_web.sketch_serraining steps, etc.
         # Check the base TrainConfig class for a full list of available hyperparameters.
         num_train_steps=30_000,
     ),
     TrainConfig(
-        # Change the name to reflect your model and dataset.
         name="pi0_airbot",
-        # Here you define the model config -- In this example we use pi0 as the model
-        # architecture and perform *full* finetuning. in the examples below we show how to modify
-        # this to perform *low-memory* (LORA) finetuning and use pi0-FAST as an alternative architecture.
         model=pi0.Pi0Config(),
-        # Here you define the dataset you are training on. In this example we use the Libero
-        # dataset. For your own dataset, you can change the repo_id to point to your dataset.
-        # Also modify the DataConfig to use the new config you made for your dataset above.
         data=LeRobotAirbotDataConfig(
-            repo_id="airbot_pickcub",
+            repo_id="airbot",
             base_config=DataConfig(
-                local_files_only=True,  # Set to True for local-only datasets.
-                # This flag determines whether we load the prompt (i.e. the task instruction) from the
-                # ``task`` field in the LeRobot dataset. If set to True, the prompt will show up in
-                # a field called ``prompt`` in the input dict. The recommended setting is True.
+                local_files_only=True,
                 prompt_from_task=True,
             ),
         ),
-        # Here you define which pre-trained checkpoint you want to load to initialize the model.
-        # This should match the model config you chose above -- i.e. in this case we use the pi0 base model.
         weight_loader=weight_loaders.CheckpointWeightLoader("s3://openpi-assets/checkpoints/pi0_base/params"),
-        # Below you can define other hyperparameters like the learning rate, number of training steps, etc.
-        # Check the base TrainConfig class for a full list of available hyperparameters.
         num_train_steps=30_000,
     ),
         TrainConfig(
-        name="pi0_airbot_infer",
-        model=pi0.Pi0Config(action_horizon=10),
+        name="pi0_airbot_infer_with_ref",
+        model=pi0.Pi0Config(action_horizon=25, use_ref=True),
         data=LeRobotAirbotDataConfig(
-            repo_id="airbot_pickcub",
+            repo_id="airbot",
             base_config=DataConfig(
                 local_files_only=True,  # Set to True for local-only datasets.
                 prompt_from_task=True,

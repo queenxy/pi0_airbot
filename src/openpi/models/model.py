@@ -213,6 +213,8 @@ class BaseModelConfig(abc.ABC):
     action_horizon: int
     # Tokenized prompt maximum length.
     max_token_len: int
+    # Whether ref image is used
+    use_ref: bool
 
     @property
     @abc.abstractmethod

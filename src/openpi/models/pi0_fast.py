@@ -81,6 +81,7 @@ class Pi0FASTConfig(_model.BaseModelConfig):
     action_dim: int = 32
     action_horizon: int = 32
     max_token_len: int = 250
+    use_ref: bool = False
 
     @property
     @override

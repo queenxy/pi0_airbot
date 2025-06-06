@@ -200,22 +200,53 @@
             }
 
             // 画开始和结束圆圈
-            // let size = 20;
-            // let weight = 5
-            // noFill();
-            // strokeWeight(weight);
+            let size = 20;
+            let weight = 5
+            noFill();
+            strokeWeight(weight);
 
-            // stroke(0, 255, 0);
-            // ellipse(drawingPoints[0].x, drawingPoints[0].y, size, size);
+            stroke(0, 255, 0);
+            ellipse(drawingPoints[0].x, drawingPoints[0].y, size, size);
 
-            // stroke(0, 0, 255);
-            // ellipse(drawingPoints[drawingPoints.length - 1].x, drawingPoints[drawingPoints.length - 1].y, size, size);
+            stroke(0, 0, 255);
+            ellipse(drawingPoints[drawingPoints.length - 1].x, drawingPoints[drawingPoints.length - 1].y, size, size);
         }
     
         function saveDrawing() {
             let drawingData = canvas.toDataURL('image/png');
             
             let drawingPointsData = drawingPoints;
+
+             // 创建只包含绘制轨迹的临时画布
+            let strokeCanvas = createGraphics(640, 480);
+            strokeCanvas.clear();
+            strokeCanvas.background(0, 0, 0, 0); // 透明背景
+            
+            // 在临时画布上重绘轨迹
+            for (let i = 1; i < drawingPoints.length; i++) {
+                let startPoint = drawingPoints[i - 1];
+                let endPoint = drawingPoints[i];
+                let t = endPoint.time / index;
+                let r = Math.min(255, Math.floor(255 * t));
+                strokeCanvas.stroke(r, 0, 0);
+                strokeCanvas.strokeWeight(5);
+                strokeCanvas.line(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+            }
+
+            // 在轨迹两端添加空心圆圈
+            let circleSize = 20;
+            let circleWeight = 5;
+            
+            // 开始点 - 绿色圆圈
+            strokeCanvas.noFill();
+            strokeCanvas.stroke(0, 255, 0);
+            strokeCanvas.strokeWeight(circleWeight);
+            strokeCanvas.ellipse(drawingPoints[0].x, drawingPoints[0].y, circleSize, circleSize);
+            
+            // 结束点 - 蓝色圆圈
+            strokeCanvas.stroke(0, 0, 255);
+            strokeCanvas.ellipse(drawingPoints[drawingPoints.length-1].x, drawingPoints[drawingPoints.length-1].y, circleSize, circleSize);
+            let strokeData = strokeCanvas.canvas.toDataURL('image/png');
 
             clear();
             background(255);
@@ -230,7 +261,8 @@
                 },
                 body: JSON.stringify({
                     drawing: drawingData,
-                    drawingPoints: drawingPointsData
+                    drawingPoints: drawingPointsData,
+                    strokeOnly: strokeData  // 新增只包含轨迹的图片
                 })
             })
             .then(response => response.json())

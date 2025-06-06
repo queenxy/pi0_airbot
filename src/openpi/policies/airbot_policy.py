@@ -6,17 +6,6 @@ import numpy as np
 from openpi import transforms
 from openpi.models import model as _model
 
-
-def make_airbot_example() -> dict:
-    """Creates a random input example for the Libero policy."""
-    return {
-        "observation/state": np.random.rand(7),
-        "observation/image": np.random.randint(256, size=(224, 224, 3), dtype=np.uint8),
-        "observation/wrist_image": np.random.randint(256, size=(224, 224, 3), dtype=np.uint8),
-        "prompt": "do something",
-    }
-
-
 def _parse_image(image) -> np.ndarray:
     image = np.asarray(image)
     if np.issubdtype(image.dtype, np.floating):
@@ -68,9 +57,9 @@ class AirbotInputs(transforms.DataTransformFn):
         base_image = _parse_image(data["observation/image"])
         wrist_image = _parse_image(data["observation/wrist_image"])
         if self.use_ref:
-            right_image = _parse_image(data["observation/ref_image"])
+            ref_image = _parse_image(data["observation/ref_image"])
         else:
-            right_image = np.zeros_like(base_image)
+            ref_image = np.zeros_like(base_image)
 
         # Create inputs dict. Do not change the keys in the dict below.
         inputs = {
@@ -79,7 +68,7 @@ class AirbotInputs(transforms.DataTransformFn):
                 "base_0_rgb": base_image,
                 "left_wrist_0_rgb": wrist_image,
                 # Pad any non-existent images with zero-arrays of the appropriate shape.
-                "right_wrist_0_rgb": right_image,
+                "right_wrist_0_rgb": ref_image,
             },
             "image_mask": {
                 "base_0_rgb": np.True_,
@@ -106,7 +95,7 @@ class AirbotInputs(transforms.DataTransformFn):
         return inputs
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)# The repack transform is *only* applied to
 class AirbotOutputs(transforms.DataTransformFn):
     """
     This class is used to convert outputs from the model back the the dataset specific format. It is

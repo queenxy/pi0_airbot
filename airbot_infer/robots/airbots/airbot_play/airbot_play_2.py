@@ -1,5 +1,5 @@
 import airbot
-from robots.common_robot import Configer
+from airbot_infer.robots.common_robot import Configer
 from typing import Optional, List
 from dataclasses import dataclass, replace, field
 
@@ -27,6 +27,7 @@ class AIRBOTPlay(object):
         self.config = replace(config, **kwargs)
         cfg = Configer.config2tuple(self.config)[:7]
         print("cfg", cfg)
+
         self.robot = airbot.create_agent(*cfg)
         self._arm_joints_num = 6
         self.joints_num = 7

@@ -18,8 +18,9 @@ class ImageSketchServer:
         self.app = app
         app.config['SERVER_NAME'] = None
         self.drawn_image = None  # 要绘制的图像
-        self.result_image = None  # 用于存储绘制后的图像
+        self.result_image = None  # 用于存储绘制轨迹后的图像
         self.reference_image = None  # 用于存储参考图像
+        self.pure_drawn = None    # 用于储存纯轨迹图像
         self.drawing_points = None
         self.image_lock = threading.Lock()  # 用于处理多张图像的同步问题
         self.setup_routes()
@@ -66,10 +67,13 @@ class ImageSketchServer:
         def draw_image(self):
             drawing_data = request.json.get('drawing')  # 获取前端绘制的数据
             drawing_points = request.json.get('drawingPoints')
-            if drawing_data:
+            pure_tra_data = request.json.get('strokeOnly')
+            if drawing_data and pure_tra_data:
                 # 解码前端传来的base64图像
                 img_data = base64.b64decode(drawing_data.split(',')[1])  # 去掉 base64 前缀
+                pure_drawn_data = base64.b64decode(pure_tra_data.split(',')[1])  # 去掉 base64 前缀
                 self.drawn_image = Image.open(BytesIO(img_data))
+                self.pure_drawn = Image.open(BytesIO(pure_drawn_data))
                 self.result_image = self.drawn_image  # 保存绘制后的图像
                 self.drawing_points = drawing_points
                 return jsonify({"status": "Image drawn successfully"}), 200
@@ -114,15 +118,17 @@ class ImageSketchServer:
             while self.result_image is None:
                 time.sleep(0.01)  # 阻塞，直到图像被绘制并返回
 
+            pure_result = self.pure_drawn
             result = self.result_image
             points = self.drawing_points
             self.result_image = None
             self.drawn_image = None
+            self.pure_drawn = None
             self.reference_image = None
             self.drawing_points = None
 
             # 返回绘制后的图像
-            return result, points
+            return result, pure_result, points
 
 
 if __name__ == '__main__':
